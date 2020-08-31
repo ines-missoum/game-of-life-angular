@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +11,7 @@ export class AppComponent implements OnInit {
   pixelSize = 4;
   numCells = 160;
 
-  @ViewChild('canvas', {static: true})
+  @ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
 
   private dataArray: Array<Array<number>>;
@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
     this.context = this.canvas.nativeElement.getContext('2d');
     this.dataArray = this.buildInitialArray();
 
-    // this.randomlyPopulate(this.dataArray);
+    this.randomlyPopulate(this.dataArray);
     this.manualSetup(this.dataArray);
     this.display(this.dataArray);
 
@@ -109,10 +109,36 @@ export class AppComponent implements OnInit {
   }
 
   computeNextGeneration(arr): Array<Array<number>> {
-    // clear existing data
     const newArr = this.buildInitialArray();
+    for (let x = 0; x < arr.length; x++) {
+      for (let y = 0; y < arr[x].length; y++) {
+        newArr[x][y] = this.willBeLivingCell(x, y, arr) ? 1 : 0;
+      }
+    }
     return newArr;
   }
 
+  getAliveNeighborsNumber(x, y, arr): number {
+
+    const getMinPosition = (cellPosition: number) => cellPosition === 0 ? cellPosition : cellPosition - 1;
+    const getMaxXPosition = (cellPosition: number) => cellPosition === arr.length - 1 ? cellPosition : cellPosition + 1;
+    const getMaxYPosition = (cellPosition: number) => cellPosition === arr[0].length - 1 ? cellPosition : cellPosition + 1;
+
+    let neighborsNumber = 0;
+    for (let i = getMinPosition(x); i <= getMaxXPosition(x); i++) {
+      for (let j = getMinPosition(y); j <= getMaxYPosition(y); j++) {
+        neighborsNumber += arr[i][j];
+      }
+    }
+    return this.isAliveCell(x, y, arr) && neighborsNumber > 0 ? neighborsNumber - 1 : neighborsNumber;
+  }
+
+  isAliveCell(x, y, arr): boolean {
+    return arr[x][y];
+  }
+
+  willBeLivingCell(x, y, arr): boolean {
+    return this.getAliveNeighborsNumber(x, y, arr) === 3 || (this.isAliveCell(x, y, arr) && this.getAliveNeighborsNumber(x, y, arr) === 2);
+  }
 
 }
